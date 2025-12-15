@@ -34,18 +34,18 @@
   "author": "maptalks",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^24.9.1",
-    "@types/three": "^0.180.0",
-    "@typescript-eslint/eslint-plugin": "^8.46.2",
-    "@typescript-eslint/parser": "^8.46.2",
-    "eslint": "^9.38.0",
+    "@types/node": "^25.0.2",
+    "@types/three": "^0.182.0",
+    "@typescript-eslint/eslint-plugin": "^8.49.0",
+    "@typescript-eslint/parser": "^8.49.0",
+    "eslint": "^9.39.2",
     "typescript": "^5.9.3",
-    "vite": "^7.1.11",
+    "vite": "^7.2.7",
     "vite-plugin-dts": "^4.5.4",
-    "vitest": "^3.2.4"
+    "vitest": "^4.0.15"
   },
   "dependencies": {
-    "3d-tiles-renderer": "^0.4.17",
-    "three": "^0.180.0"
+    "3d-tiles-renderer": "^0.4.18",
+    "three": "^0.182.0"
   }
 }
