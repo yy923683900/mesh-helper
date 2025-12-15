@@ -121,6 +121,12 @@ export class MaptalksTilerPlugin {
   _setupMaterial(mesh: Mesh) {
     const material = mesh.material as Material;
 
+    // 检查 material 是否已经被设置过，避免重复设置
+    if (material.userData._meshHelperSetup) {
+      return;
+    }
+    material.userData._meshHelperSetup = true;
+
     material.side = DoubleSide;
 
     material.transparent = true;
@@ -134,33 +140,35 @@ export class MaptalksTilerPlugin {
       material.defines = {};
     }
 
-    // 只在第一次设置时定义featureIdCount属性
-    if (!material.defines.hasOwnProperty("FEATURE_ID_COUNT")) {
-      // 在material上存储当前的featureIdCount，用于检测变化
-      material.userData._materialFeatureIdCount = this.featureIdCount;
+    // 在material上存储当前的featureIdCount，用于检测变化
+    material.userData._materialFeatureIdCount = this.featureIdCount;
 
-      Object.defineProperty(material.defines, "FEATURE_ID_COUNT", {
-        get: () => {
-          // 检测全局featureIdCount是否发生变化
-          if (
-            material.userData._materialFeatureIdCount !== this.featureIdCount
-          ) {
-            // featureIdCount发生变化，更新material上的记录
-            material.userData._materialFeatureIdCount = this.featureIdCount;
+    Object.defineProperty(material.defines, "FEATURE_ID_COUNT", {
+      get: () => {
+        // 检测全局featureIdCount是否发生变化
+        if (
+          material.userData._materialFeatureIdCount !== this.featureIdCount
+        ) {
+          // featureIdCount发生变化，更新material上的记录
+          material.userData._materialFeatureIdCount = this.featureIdCount;
 
-            // 标记材质需要重新编译
-            material.needsUpdate = true;
-          }
+          // 标记材质需要重新编译
+          material.needsUpdate = true;
+        }
 
-          return material.userData._materialFeatureIdCount;
-        },
-        enumerable: true,
-        configurable: true,
-      });
-    }
+        return material.userData._materialFeatureIdCount;
+      },
+      enumerable: true,
+      configurable: true,
+    });
 
     material.onBeforeCompile = (shader, renderer) => {
       previousOnBeforeCompile?.call(material, shader, renderer);
+
+      // 检查着色器是否已经被注入过，避免重复注入
+      if (shader.vertexShader.includes("varying float vFeatureId;")) {
+        return;
+      }
 
       // Add uniform declaration
       shader.uniforms.hiddenFeatureIds = new FeatureIdUniforms(mesh, this);
