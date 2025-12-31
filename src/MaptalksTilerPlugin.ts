@@ -146,9 +146,7 @@ export class MaptalksTilerPlugin {
     Object.defineProperty(material.defines, "FEATURE_ID_COUNT", {
       get: () => {
         // 检测全局featureIdCount是否发生变化
-        if (
-          material.userData._materialFeatureIdCount !== this.featureIdCount
-        ) {
+        if (material.userData._materialFeatureIdCount !== this.featureIdCount) {
           // featureIdCount发生变化，更新material上的记录
           material.userData._materialFeatureIdCount = this.featureIdCount;
 
@@ -298,8 +296,3 @@ export class MaptalksTilerPlugin {
     this.splitMeshCache.clear();
   }
 }
-
-// renderer传进来
-// define用动态，通过Object.defineProperty(obj, {})实现,defines需要记录material，当值发生变化需要调用needsupdate
-// https://github.com/NASA-AMMOS/3DTilesRendererJS/blob/51385e2d9d10574c84779f01388da99f2f9e0d23/src/plugins/three/fade/FadeBatchedMesh.js#L16
-// 参考这个链接里面的实现方式
