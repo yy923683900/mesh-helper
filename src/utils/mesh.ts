@@ -392,8 +392,14 @@ export function getTileMeshesByOid(tiles: TilesRenderer, oid: number): Mesh[] {
  */
 function checkMeshContainsOid(mesh: Mesh, oid: number): boolean {
   // 优先使用idmap进行快速查找
-
-  return !!mesh.userData.idMap[oid];
+  const idMap = mesh.userData.idMap;
+  
+  // 检查 idMap 是否存在，以及 oid 对应的 featureId 是否存在（注意 featureId 可能为 0）
+  if (!idMap) {
+    return false;
+  }
+  
+  return idMap[oid] !== undefined;
 
   // // 如果没有idmap，回退到原来的方法
   // const { meshFeatures, structuralMetadata } = mesh.userData;
