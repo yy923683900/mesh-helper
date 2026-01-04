@@ -10,11 +10,12 @@ import {
   FeatureIdUniforms,
   FeatureInfo,
   buildOidToFeatureIdMap,
-  getSplitMeshesFromTileOptimized,
+  getSplitMeshesFromTile,
   getTileMeshesByOid,
   queryFeatureFromIntersection,
 } from "./utils";
 
+import { MeshCollector } from "./MeshCollector";
 import { TilesRenderer } from "3d-tiles-renderer";
 
 interface TileWithCache {
@@ -30,6 +31,7 @@ export class MaptalksTilerPlugin {
   private splitMeshCache: Map<string, Mesh[]> = new Map();
   private maxUniformVectors: number = 1024;
   private featureIdCount: number = 32;
+  private collectors: Set<MeshCollector> = new Set();
 
   constructor(params: { renderer: WebGLRenderer }) {
     this.renderer = params.renderer;
@@ -41,6 +43,7 @@ export class MaptalksTilerPlugin {
     this._updateWebGLLimits();
 
     tiles.addEventListener("load-model", this._onLoadModelCB);
+    tiles.addEventListener("tiles-load-end", this._onTilesLoadEndCB);
 
     // initialize an already-loaded tiles
     tiles.traverse((tile) => {
@@ -61,6 +64,14 @@ export class MaptalksTilerPlugin {
   };
 
   /**
+   * Tiles load end callback
+   * 当所有瓦片加载完成后通知 collectors 更新 meshes
+   */
+  _onTilesLoadEndCB = () => {
+    this._notifyCollectors();
+  };
+
+  /**
    * Load model
    * @param scene Scene
    */
@@ -73,6 +84,29 @@ export class MaptalksTilerPlugin {
         this._setupMaterial(c as Mesh);
       }
     });
+  }
+
+  /**
+   * 通知所有 collectors 更新 meshes
+   */
+  private _notifyCollectors(): void {
+    for (const collector of this.collectors) {
+      collector._updateMeshes();
+    }
+  }
+
+  /**
+   * 注册 MeshCollector（内部方法）
+   */
+  _registerCollector(collector: MeshCollector): void {
+    this.collectors.add(collector);
+  }
+
+  /**
+   * 注销 MeshCollector（内部方法）
+   */
+  _unregisterCollector(collector: MeshCollector): void {
+    this.collectors.delete(collector);
   }
 
   /**
@@ -223,11 +257,11 @@ export class MaptalksTilerPlugin {
   }
 
   /**
-   * Get mesh array by oid
+   * 内部方法：根据 oid 获取 mesh 数组
    * @param oid oid
-   * @returns corresponding mesh array
+   * @returns 对应的 mesh 数组
    */
-  getMeshesByOid(oid: number): Mesh[] {
+  _getMeshesByOidInternal(oid: number): Mesh[] {
     const tileMeshes = getTileMeshesByOid(this.tiles!, oid);
 
     const allSplitMeshes: Mesh[] = [];
@@ -238,15 +272,23 @@ export class MaptalksTilerPlugin {
       let splitMeshes = this.splitMeshCache.get(cacheKey);
 
       if (!splitMeshes) {
-        // splitMeshes = getSplitMeshesFromTile(tileMesh, oid);
-        splitMeshes = getSplitMeshesFromTileOptimized(tileMesh, oid);
+        splitMeshes = getSplitMeshesFromTile(tileMesh, oid);
         this.splitMeshCache.set(cacheKey, splitMeshes);
       }
-
       allSplitMeshes.push(...splitMeshes);
     }
 
     return allSplitMeshes;
+  }
+
+  /**
+   * 根据 oid 获取 MeshCollector
+   * MeshCollector 会监听瓦片变化，自动更新 meshes 并触发 mesh-change 事件
+   * @param oid oid
+   * @returns MeshCollector 实例
+   */
+  getMeshCollectorByOid(oid: number): MeshCollector {
+    return new MeshCollector(oid, this);
   }
 
   /**
@@ -291,7 +333,14 @@ export class MaptalksTilerPlugin {
 
     if (tiles) {
       tiles.removeEventListener("load-model", this._onLoadModelCB);
+      tiles.removeEventListener("tiles-load-end", this._onTilesLoadEndCB);
     }
+
+    // 清理所有 collectors
+    for (const collector of this.collectors) {
+      collector.dispose();
+    }
+    this.collectors.clear();
 
     this.splitMeshCache.clear();
   }
