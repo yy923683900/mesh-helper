@@ -26,11 +26,10 @@ export class MeshCollector extends EventDispatcher<MeshCollectorEventMap> {
     this.oid = oid;
     this.plugin = plugin;
 
-    // 初始化时立即获取当前的 meshes
-    this._updateMeshes();
-
     // 注册到 plugin 的 collector 列表
     plugin._registerCollector(this);
+
+    this._updateMeshes();
   }
 
   /**
@@ -76,4 +75,3 @@ export class MeshCollector extends EventDispatcher<MeshCollectorEventMap> {
     this._meshes = [];
   }
 }
-

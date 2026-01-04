@@ -34,8 +34,6 @@ const hiddenCount = hideOriginalMeshByOids({
   debug: true              // 是否启用调试模式（可选）
 });
 
-console.log(`成功隐藏了 ${hiddenCount} 个mesh的部分内容`);
-
 // 2. 恢复指定OID的物件（部分恢复）
 const restoredCount = restoreOidsByArray({
   oids: [1001, 1002],      // 要恢复的OID数组
@@ -43,11 +41,8 @@ const restoredCount = restoreOidsByArray({
   debug: true              // 是否启用调试模式（可选）
 });
 
-console.log(`成功恢复了 ${restoredCount} 个mesh的指定OID部分`);
-
 // 3. 恢复所有原始材质（完全恢复）
 const allRestoredCount = restoreOriginalMaterials(scene, { debug: true });
-console.log(`恢复了 ${allRestoredCount} 个mesh的原始材质`);
 ```
 
 #### 高级使用示例
@@ -68,7 +63,6 @@ hideOriginalMeshByOids({ oids: [2001, 2002], scene });
 // 查看所有应用了shader的mesh信息
 const shaderedInfo = getAllShaderedMeshInfo();
 shaderedInfo.forEach(({ mesh, hiddenOids }) => {
-  console.log(`Mesh ${mesh.name} 隐藏的OIDs:`, hiddenOids);
 });
 
 // 部分恢复：只恢复特定OID
@@ -82,7 +76,6 @@ scene.traverse(mesh => {
   if (mesh.type === 'Mesh') {
     const hiddenOids = getMeshHiddenOids(mesh);
     if (hiddenOids.length > 0) {
-      console.log(`${mesh.name} 当前隐藏OIDs:`, hiddenOids);
     }
   }
 });
