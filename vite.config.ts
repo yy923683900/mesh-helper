@@ -24,9 +24,11 @@ export default defineConfig({
       fileName: (format) => `index.${format === "es" ? "js" : "cjs"}`,
     },
     rollupOptions: {
-      external: [],
+      external: ["three"],
       output: {
-        globals: {},
+        globals: {
+          three: "THREE",
+        },
       },
     },
     sourcemap: true,
