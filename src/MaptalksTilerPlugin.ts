@@ -163,10 +163,6 @@ export class MaptalksTilerPlugin {
 
     material.side = DoubleSide;
 
-    material.transparent = true;
-
-    material.opacity = 0.5;
-
     const previousOnBeforeCompile = material.onBeforeCompile;
 
     // 确保material.defines存在
